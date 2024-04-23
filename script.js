@@ -57,27 +57,27 @@ const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
 
 let config = {
-    SIM_RESOLUTION: 128,
+    SIM_RESOLUTION: 256,
     DYE_RESOLUTION: 1024,
     CAPTURE_RESOLUTION: 512,
-    DENSITY_DISSIPATION: 1,
-    VELOCITY_DISSIPATION: 0.2,
-    PRESSURE: 0.8,
+    DENSITY_DISSIPATION: 4,
+    VELOCITY_DISSIPATION: 1.19,
+    PRESSURE: 0.47,
     PRESSURE_ITERATIONS: 20,
     CURL: 30,
-    SPLAT_RADIUS: 0.25,
+    SPLAT_RADIUS: 0.01,
     SPLAT_FORCE: 6000,
     SHADING: true,
     COLORFUL: true,
     COLOR_UPDATE_SPEED: 10,
     PAUSED: false,
-    BACK_COLOR: { r: 0, g: 0, b: 0 },
+    BACK_COLOR: { r: 255, g: 255, b: 255 },
     TRANSPARENT: false,
-    BLOOM: true,
+    BLOOM: false,
     BLOOM_ITERATIONS: 8,
     BLOOM_RESOLUTION: 256,
-    BLOOM_INTENSITY: 0.8,
-    BLOOM_THRESHOLD: 0.6,
+    BLOOM_INTENSITY: 1.59,
+    BLOOM_THRESHOLD: 0,
     BLOOM_SOFT_KNEE: 0.7,
     SUNRAYS: true,
     SUNRAYS_RESOLUTION: 196,
@@ -276,8 +276,7 @@ function startGUI () {
     app.domElement.parentElement.appendChild(appIcon);
     appIcon.className = 'icon app';
 
-    if (isMobile())
-        gui.close();
+    gui.close();
 }
 
 function isMobile () {
@@ -1145,14 +1144,6 @@ function createTextureAsync (url) {
         }
     };
 
-    let image = new Image();
-    image.onload = () => {
-        obj.width = image.width;
-        obj.height = image.height;
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-    };
-    image.src = url;
 
     return obj;
 }
@@ -1167,7 +1158,7 @@ function updateKeywords () {
 
 updateKeywords();
 initFramebuffers();
-multipleSplats(parseInt(Math.random() * 20) + 5);
+//multipleSplats(parseInt(Math.random() * 20) + 5);
 
 let lastUpdateTime = Date.now();
 let colorUpdateTimer = 0.0;
@@ -1469,6 +1460,45 @@ canvas.addEventListener('mousedown', e => {
         pointer = new pointerPrototype();
     updatePointerDownData(pointer, -1, posX, posY);
 });
+
+// get width and height of the canvas
+pointers.push(new pointerPrototype());
+let p = pointers[1];
+let centerX = canvas.width/2;
+let centerY = canvas.height/2;
+let radius = 100;
+let angle = 1;
+    
+updatePointerDownData(pointers[1], -1, centerX, centerY);
+
+setInterval(() => {
+    if (!pointers[1].down) return;
+
+    /*
+    //move pointer from left to right in center
+    let pointer = pointers[0];
+    let posX = scaleByPixelRatio(centerX);
+    let posY = scaleByPixelRatio(centerY);
+    updatePointerMoveData(pointer, posX, posY);
+    centerX+=5;
+    */
+
+
+    let posX = centerX + radius * Math.cos(angle);
+    let posY = centerY + radius * Math.sin(angle);
+
+    // add small distortion
+    posX += Math.random() * 10 - 5;
+    posY += Math.random() * 10 - 5;
+
+
+
+    updatePointerMoveData(pointers[1], posX, posY);
+
+    angle += 0.07
+
+}, 7);
+
 
 canvas.addEventListener('mousemove', e => {
     let pointer = pointers[0];

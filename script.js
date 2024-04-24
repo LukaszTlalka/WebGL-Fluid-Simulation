@@ -26,36 +26,46 @@ SOFTWARE.
 
 // Mobile promo section
 
-const promoPopup = document.getElementsByClassName('promo')[0];
-const promoPopupClose = document.getElementsByClassName('promo-close')[0];
+// Initialize the palette of colors (in HSV for easier transitions)
+const palette = [
+   {h: 0, s: 1.0, v: 1.0},   // Red
+  {h: 0.08, s: 1.0, v: 1.0}, // Orange
+  // {h: 0.66, s: 1.0, v: 1.0}, // Blue
+  //{h: 0.33, s: 1.0, v: 1.0}, // Green
+  //{h: 0.16, s: 1.0, v: 1.0}, // Yellow
+  //{h: 0.75, s: 1.0, v: 1.0}, // Purple
+  //{h: 0.5, s: 1.0, v: 1.0},  // Cyan
+  //{h: 0.41, s: 1.0, v: 1.0}, // Lime
+   //{h: 0.83, s: 1.0, v: 1.0}, // Pink
+   //{h: 0.58, s: 1.0, v: 1.0}, // Teal
+];
 
-if (isMobile()) {
-    setTimeout(() => {
-        promoPopup.style.display = 'table';
-    }, 20000);
+// Start with the first color in the palette
+let currentColorIndex = 0;
+
+// Define the function to generate and cycle colors
+function generateColor() {
+    const colorHSV = palette[currentColorIndex]; // Get current color from the palette
+    let colorRGB = HSVtoRGB(colorHSV.h, colorHSV.s, colorHSV.v); // Convert HSV to RGB
+
+    // Optionally darken the color
+    colorRGB.r *= 0.15;
+    colorRGB.g *= 0.15;
+    colorRGB.b *= 0.15;
+
+
+    // Move to the next color in the palette, wrapping around if necessary
+    if (Math.random() < 0.1)
+        currentColorIndex = (currentColorIndex + 1) % palette.length;
+
+    return colorRGB;
 }
-
-promoPopupClose.addEventListener('click', e => {
-    promoPopup.style.display = 'none';
-});
-
-const appleLink = document.getElementById('apple_link');
-appleLink.addEventListener('click', e => {
-    ga('send', 'event', 'link promo', 'app');
-    window.open('https://apps.apple.com/us/app/fluid-simulation/id1443124993');
-});
-
-const googleLink = document.getElementById('google_link');
-googleLink.addEventListener('click', e => {
-    ga('send', 'event', 'link promo', 'app');
-    window.open('https://play.google.com/store/apps/details?id=games.paveldogreat.fluidsimfree');
-});
 
 // Simulation section
 
 const canvas = document.getElementsByTagName('canvas')[0];
 resizeCanvas();
-
+/*
 let config = {
     SIM_RESOLUTION: 256,
     DYE_RESOLUTION: 1024,
@@ -79,7 +89,35 @@ let config = {
     BLOOM_INTENSITY: 1.59,
     BLOOM_THRESHOLD: 0,
     BLOOM_SOFT_KNEE: 0.7,
-    SUNRAYS: true,
+    SUNRAYS: false,
+    SUNRAYS_RESOLUTION: 196,
+    SUNRAYS_WEIGHT: 1.0,
+}
+*/
+let config = {
+    SIM_RESOLUTION: 256,
+    DYE_RESOLUTION: 1024,
+    CAPTURE_RESOLUTION: 512,
+    DENSITY_DISSIPATION: 4,
+    VELOCITY_DISSIPATION: 1.2,
+    PRESSURE: 0.47,
+    PRESSURE_ITERATIONS: 20,
+    CURL: 30,
+    SPLAT_RADIUS: 0.06,
+    SPLAT_FORCE: 6000,
+    SHADING: true,
+    COLORFUL: true,
+    COLOR_UPDATE_SPEED: 10,
+    PAUSED: false,
+    BACK_COLOR: { r: 255, g: 255, b: 255 },
+    TRANSPARENT: false,
+    BLOOM: false,
+    BLOOM_ITERATIONS: 8,
+    BLOOM_RESOLUTION: 256,
+    BLOOM_INTENSITY: 1.59,
+    BLOOM_THRESHOLD: 0,
+    BLOOM_SOFT_KNEE: 0.7,
+    SUNRAYS: false,
     SUNRAYS_RESOLUTION: 196,
     SUNRAYS_WEIGHT: 1.0,
 }
@@ -1466,39 +1504,67 @@ pointers.push(new pointerPrototype());
 let p = pointers[1];
 let centerX = canvas.width/2;
 let centerY = canvas.height/2;
-let radius = 100;
+let radius = 180;
 let angle = 1;
-    
-updatePointerDownData(pointers[1], -1, centerX, centerY);
 
-setInterval(() => {
-    if (!pointers[1].down) return;
 
-    /*
-    //move pointer from left to right in center
-    let pointer = pointers[0];
-    let posX = scaleByPixelRatio(centerX);
-    let posY = scaleByPixelRatio(centerY);
-    updatePointerMoveData(pointer, posX, posY);
-    centerX+=5;
-    */
+let duration = 1; // Duration in seconds
+let startTime = null; // Starting time of the animation
 
+function movePointer(timestamp) {
+    if (!startTime) startTime = timestamp; // Record the start time
+    const elapsed = timestamp - startTime; // Calculate elapsed time
+
+    // Normalize the elapsed time to a fraction of the duration
+    const progress = elapsed / (duration * 1000);
+
+    // Example of a linear progression modification
+    angle = progress * 2 * Math.PI; // Full rotation over the specified duration
 
     let posX = centerX + radius * Math.cos(angle);
     let posY = centerY + radius * Math.sin(angle);
 
-    // add small distortion
+    // Add a small distortion
     posX += Math.random() * 10 - 5;
     posY += Math.random() * 10 - 5;
 
-
-
     updatePointerMoveData(pointers[1], posX, posY);
 
-    angle += 0.07
+    // Request the next frame, continuing the animation
+    animationFrameId = requestAnimationFrame(movePointer);
+}
 
-}, 7);
+// Start the animation
+let animationFrameId = requestAnimationFrame(movePointer);
 
+    
+updatePointerDownData(pointers[1], -1, centerX, centerY);
+
+//   setInterval(() => {
+//       if (!pointers[1].down) return;
+//
+//       /*
+//       //move pointer from left to right in center
+//       let pointer = pointers[0];
+//       let posX = scaleByPixelRatio(centerX);
+//       let posY = scaleByPixelRatio(centerY);
+//       updatePointerMoveData(pointer, posX, posY);
+//       centerX+=5;
+//       */
+//
+//
+//       let posX = centerX + radius * Math.cos(angle);
+//       let posY = centerY + radius * Math.sin(angle);
+//
+//       // add small distortion
+//       posX += Math.random() * 10 - 5;
+//       posY += Math.random() * 10 - 5;
+//
+//       updatePointerMoveData(pointers[1], posX, posY);
+//
+//       angle += 0.07
+//
+//   }, 7);
 
 canvas.addEventListener('mousemove', e => {
     let pointer = pointers[0];
@@ -1590,14 +1656,6 @@ function correctDeltaY (delta) {
     let aspectRatio = canvas.width / canvas.height;
     if (aspectRatio > 1) delta /= aspectRatio;
     return delta;
-}
-
-function generateColor () {
-    let c = HSVtoRGB(Math.random(), 1.0, 1.0);
-    c.r *= 0.15;
-    c.g *= 0.15;
-    c.b *= 0.15;
-    return c;
 }
 
 function HSVtoRGB (h, s, v) {

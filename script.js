@@ -132,9 +132,7 @@ setInterval(function() {
     if (Math.random() > 0.5) {
         config.CURL += curlDirection;
     }
-
 }, 100);
-
 
 
 function pointerPrototype () {

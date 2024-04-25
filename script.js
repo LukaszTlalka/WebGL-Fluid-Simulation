@@ -36,8 +36,6 @@ const palette = [
 	{h: 0.66, s: 1.0, v: 1.0}, // Blue
 	{h: 0.75, s: 1.0, v: 1.0}, // Purple
 	{h: 0.83, s: 1.0, v: 1.0}, // Pink
-	//{h: 0.41, s: 1.0, v: 1.0}, // Lime
-	// {h: 0.58, s: 1.0, v: 1.0}, // Teal
 ];
 
 // Start with the first color in the palette
@@ -98,10 +96,12 @@ let config = {
     DYE_RESOLUTION: 1024,
     CAPTURE_RESOLUTION: 512,
     DENSITY_DISSIPATION: 4,
-    VELOCITY_DISSIPATION: 1.2,
+    VELOCITY_DISSIPATION: 1,
     PRESSURE: 0.47,
     PRESSURE_ITERATIONS: 20,
-    CURL: 30,
+
+    // random from 20 to 50
+    CURL: 100,//Math.floor(Math.random() * 30) + 20,
     SPLAT_RADIUS: 0.05,
     SPLAT_FORCE: 6000,
     SHADING: true,
@@ -121,6 +121,22 @@ let config = {
     SUNRAYS_WEIGHT: 1.0,
 }
 
+let curlDirection = 1;
+setInterval(function() {
+    if (config.CURL > 100) {
+        curlDirection = -1;
+    } else if (config.CURL < 1) {
+        curlDirection = 1;
+    }
+   
+    if (Math.random() > 0.5) {
+        config.CURL += curlDirection;
+    }
+
+}, 100);
+
+
+
 function pointerPrototype () {
     this.id = -1;
     this.texcoordX = 0;
@@ -131,7 +147,17 @@ function pointerPrototype () {
     this.deltaY = 0;
     this.down = false;
     this.moved = false;
-    this.color = [30, 0, 300];
+
+    this.palete = palette;
+    this.paleteIndex = 0;
+    this.switchColor = function (direction = 1) {
+        this.paleteIndex = (this.paleteIndex + direction) % this.palete.length;
+        if (this.paleteIndex < 0) {
+            this.paleteIndex = this.palete.length - 1;
+        }
+        return this.color = HSVtoRGB(this.palete[this.paleteIndex].h, this.palete[this.paleteIndex].s, this.palete[this.paleteIndex].v);
+    }
+    this.color = this.switchColor();
 }
 
 let pointers = [];
@@ -1205,7 +1231,7 @@ function update () {
     const dt = calcDeltaTime();
     if (resizeCanvas())
         initFramebuffers();
-    updateColors(dt);
+    //updateColors(dt);
     applyInputs();
     if (!config.PAUSED)
         step(dt);
@@ -1449,6 +1475,7 @@ function blur (target, temp, iterations) {
 function splatPointer (pointer) {
     let dx = pointer.deltaX * config.SPLAT_FORCE;
     let dy = pointer.deltaY * config.SPLAT_FORCE;
+
     splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
 }
 
@@ -1500,13 +1527,15 @@ canvas.addEventListener('mousedown', e => {
 
 // get width and height of the canvas
 pointers.push(new pointerPrototype());
-let p = pointers[1];
+pointers.push(new pointerPrototype());
+
 let centerX = canvas.width/2;
 let centerY = canvas.height-canvas.height/5;
 let radius = 180;
 let angle = 1;
+let angle2 = 3;
 
-let duration = 1.4; // Duration in seconds
+let duration = 5.4; // Duration in seconds
 let startTime = null; // Starting time of the animation
 
 function movePointer(timestamp) {
@@ -1528,15 +1557,63 @@ function movePointer(timestamp) {
 
     updatePointerMoveData(pointers[1], posX, posY);
 
+    //-------------------------------
+
+    // Example of a linear progression modification
+    angle2 = -(3 + progress * 2 * Math.PI*1.3); // Full rotation over the specified duration
+
+    posX = centerX + radius * Math.cos(angle2);
+    posY = centerY + radius * Math.sin(angle2);
+
+    // Add a small distortion
+    posX += Math.random() * 10 - 5;
+    posY += Math.random() * 10 - 5;
+
+    updatePointerMoveData(pointers[2], posX, posY);
+
     // Request the next frame, continuing the animation
     animationFrameId = requestAnimationFrame(movePointer);
+
 }
+pointers[2].switchColor();
+pointers[2].switchColor();
+
+
+setInterval(() => {
+    if (Math.random() > 0.5) {
+        pointers[2].switchColor();
+    }
+    if (Math.random() > 0.8) {
+        pointers[1].switchColor(-1);
+    }
+}, 1000);
 
 // Start the animation
 let animationFrameId = requestAnimationFrame(movePointer);
 
-    
+
 updatePointerDownData(pointers[1], -1, centerX, centerY);
+updatePointerDownData(pointers[2], -1, centerX, centerY);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //   setInterval(() => {
 //       if (!pointers[1].down) return;
@@ -1627,7 +1704,7 @@ function updatePointerDownData (pointer, id, posX, posY) {
     pointer.prevTexcoordY = pointer.texcoordY;
     pointer.deltaX = 0;
     pointer.deltaY = 0;
-    pointer.color = generateColor();
+    pointer.color = pointer.switchColor()
 }
 
 function updatePointerMoveData (pointer, posX, posY) {

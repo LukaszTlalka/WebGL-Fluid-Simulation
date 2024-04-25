@@ -28,16 +28,16 @@ SOFTWARE.
 
 // Initialize the palette of colors (in HSV for easier transitions)
 const palette = [
-   {h: 0, s: 1.0, v: 1.0},   // Red
-  {h: 0.08, s: 1.0, v: 1.0}, // Orange
-  // {h: 0.66, s: 1.0, v: 1.0}, // Blue
-  //{h: 0.33, s: 1.0, v: 1.0}, // Green
-  //{h: 0.16, s: 1.0, v: 1.0}, // Yellow
-  //{h: 0.75, s: 1.0, v: 1.0}, // Purple
-  //{h: 0.5, s: 1.0, v: 1.0},  // Cyan
-  //{h: 0.41, s: 1.0, v: 1.0}, // Lime
-   //{h: 0.83, s: 1.0, v: 1.0}, // Pink
-   //{h: 0.58, s: 1.0, v: 1.0}, // Teal
+	{h: 0, s: 1.0, v: 1.0},   // Red
+	{h: 0.08, s: 1.0, v: 1.0}, // Orange
+	{h: 0.16, s: 1.0, v: 1.0}, // Yellow
+	{h: 0.33, s: 1.0, v: 1.0}, // Green
+	{h: 0.5, s: 1.0, v: 1.0},  // Cyan
+	{h: 0.66, s: 1.0, v: 1.0}, // Blue
+	{h: 0.75, s: 1.0, v: 1.0}, // Purple
+	{h: 0.83, s: 1.0, v: 1.0}, // Pink
+	//{h: 0.41, s: 1.0, v: 1.0}, // Lime
+	// {h: 0.58, s: 1.0, v: 1.0}, // Teal
 ];
 
 // Start with the first color in the palette
@@ -53,13 +53,12 @@ function generateColor() {
     colorRGB.g *= 0.15;
     colorRGB.b *= 0.15;
 
-
-    // Move to the next color in the palette, wrapping around if necessary
-    if (Math.random() < 0.1)
-        currentColorIndex = (currentColorIndex + 1) % palette.length;
-
     return colorRGB;
 }
+
+setInterval(function() {
+        currentColorIndex = (currentColorIndex + 1) % palette.length;
+}, 2000);
 
 // Simulation section
 
@@ -103,13 +102,13 @@ let config = {
     PRESSURE: 0.47,
     PRESSURE_ITERATIONS: 20,
     CURL: 30,
-    SPLAT_RADIUS: 0.06,
+    SPLAT_RADIUS: 0.05,
     SPLAT_FORCE: 6000,
     SHADING: true,
     COLORFUL: true,
     COLOR_UPDATE_SPEED: 10,
     PAUSED: false,
-    BACK_COLOR: { r: 255, g: 255, b: 255 },
+    BACK_COLOR: { r: 15, g: 23, b: 32 },
     TRANSPARENT: false,
     BLOOM: false,
     BLOOM_ITERATIONS: 8,
@@ -1503,12 +1502,11 @@ canvas.addEventListener('mousedown', e => {
 pointers.push(new pointerPrototype());
 let p = pointers[1];
 let centerX = canvas.width/2;
-let centerY = canvas.height/2;
+let centerY = canvas.height-canvas.height/5;
 let radius = 180;
 let angle = 1;
 
-
-let duration = 1; // Duration in seconds
+let duration = 1.4; // Duration in seconds
 let startTime = null; // Starting time of the animation
 
 function movePointer(timestamp) {

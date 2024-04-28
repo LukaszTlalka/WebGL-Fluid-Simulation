@@ -1536,6 +1536,8 @@ let angle2 = 3;
 let duration = 5.4; // Duration in seconds
 let startTime = null; // Starting time of the animation
 
+let directionModifier = -1;
+
 function movePointer(timestamp) {
     if (!startTime) startTime = timestamp; // Record the start time
     const elapsed = timestamp - startTime; // Calculate elapsed time
@@ -1558,7 +1560,7 @@ function movePointer(timestamp) {
     //-------------------------------
 
     // Example of a linear progression modification
-    angle2 = -(3 + progress * 2 * Math.PI*1.3); // Full rotation over the specified duration
+    angle2 = directionModifier*(3 + progress * 2 * Math.PI*1.3); // Full rotation over the specified duration
 
     posX = centerX + radius * Math.cos(angle2);
     posY = centerY + radius * Math.sin(angle2);
@@ -1573,6 +1575,14 @@ function movePointer(timestamp) {
     animationFrameId = requestAnimationFrame(movePointer);
 
 }
+
+setInterval(() => {
+    if (directionModifier > 0)
+        directionModifier = -directionModifier;
+    else if (Math.random() > 0.9)
+        directionModifier = -directionModifier;
+}, 1000*10);
+
 pointers[2].switchColor();
 pointers[2].switchColor();
 
